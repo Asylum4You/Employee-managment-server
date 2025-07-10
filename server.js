@@ -6,6 +6,8 @@ const cookieParser = require("cookie-parser");
 const userRouter = require("./routes/userRoutes");
 const authRouter = require("./routes/authRoutes");
 const employeeTaskRouter = require("./routes/employeeTaskRoute");
+const adminRouter = require("./routes/adminRoute");
+const paymentRoute = require("./routes/paymentRouter");
 
 const app = express();
 
@@ -20,10 +22,17 @@ app.use(cookieParser());
 
 connectDB();
 
-// All the routes;
-app.use("/web/api/", userRouter);
-app.use("/web/api/", authRouter);
-app.use("/web/api/", employeeTaskRouter);
+const routers = {
+  userRouter,
+  authRouter,
+  employeeTaskRouter,
+  adminRouter,
+  paymentRoute,
+};
+
+routers.forEach((router) => {
+  app.use("/web/api/", router);
+});
 
 app.get("/", (req, res) => {
   res.send("Api Working");
