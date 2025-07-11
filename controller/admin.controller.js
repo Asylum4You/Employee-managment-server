@@ -29,8 +29,8 @@ exports.updateEmployeeSalary = async (req, res) => {
 };
 
 exports.makeEmployeeToHr = async (req, res) => {
-    const id = req.params.id;
-    const role = req.body.role;
+  const id = req.params.id;
+  const role = req.body.role;
 
   try {
     const employee = await User.findById(id);
@@ -42,6 +42,22 @@ exports.makeEmployeeToHr = async (req, res) => {
     res
       .status(201)
       .json({ message: "successfully promote employee to hr", employee });
+  } catch (error) {
+    res.status(500).json({ message: "internal server error" });
+  }
+};
+
+exports.firedEmployees = async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    const employee = await User.findById(id);
+    if (!employee)
+      return res.status(404).json({ message: "employee not found" });
+    employee.isFired = true;
+    await employee.save();
+
+    res.status(201).json({ message: "successfully employee fired", employee });
   } catch (error) {
     res.status(500).json({ message: "internal server error" });
   }
