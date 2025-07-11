@@ -22,8 +22,27 @@ exports.updateEmployeeSalary = async (req, res) => {
       return res.status(404).json({ message: "employee not found" });
     employee.salary = salary;
     await employee.save();
-    res.status(201).json({message: 'successfully salary updated', employee})
+    res.status(201).json({ message: "successfully salary updated", employee });
   } catch (error) {
     res.status(404).json({ message: "Internal server error" });
+  }
+};
+
+exports.makeEmployeeToHr = async (req, res) => {
+    const id = req.params.id;
+    const role = req.body.role;
+
+  try {
+    const employee = await User.findById(id);
+    if (!employee)
+      return res.status(404).json({ message: "employee not found" });
+
+    employee.role = role;
+    await employee.save();
+    res
+      .status(201)
+      .json({ message: "successfully promote employee to hr", employee });
+  } catch (error) {
+    res.status(500).json({ message: "internal server error" });
   }
 };
