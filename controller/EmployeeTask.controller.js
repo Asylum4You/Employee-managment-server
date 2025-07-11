@@ -1,21 +1,29 @@
 const EmployeeTask = require("../model/EmployeeTask");
+const User = require("../model/User");
 
 exports.addEmployeeTask = async (req, res) => {
+  const { task, hours, date, employeeName, month } = req.body;
+  const uid = req.user.uid;
+
   try {
-    const { task, hours, date, userUID, employeeName, month } = req.body;
+    const employee = await User.findOne({ uid });
+    if (!employee)
+      return res.status(404).json({ message: "employee not found" });
 
     const newTask = new EmployeeTask({
       task,
       hours,
       date,
-      userUID,
+      uid,
       employeeName,
+      employeeId: employee._id,
       month,
     });
-
+    console.log(newTask);
     const savedTask = await newTask.save();
     res.status(201).json(savedTask);
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: "Failed to add task" });
   }
 };
@@ -37,7 +45,7 @@ exports.getEmployeeTasksRecords = async (req, res) => {
 exports.getEmployeeTaskById = async (req, res) => {
   try {
     const { uid } = req.params;
-    const tasks = await EmployeeTask.find({ userUID: uid }).sort({
+    const tasks = await EmployeeTask.find({ uid }).sort({
       createdAt: -1,
     });
 

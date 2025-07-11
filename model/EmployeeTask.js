@@ -20,11 +20,16 @@ const employeeTaskSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    userUID: {
+    uid: {
       type: String,
       required: true,
       ref: "User", // Reference to the User collection (optional if not populating)
     },
+    employeeId: {
+      type: String,
+      required: true,
+      ref: 'User',
+    }
   },
   { timestamps: true }
 );

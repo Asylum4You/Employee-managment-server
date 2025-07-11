@@ -6,7 +6,8 @@ const cookieParser = require("cookie-parser");
 const userRouter = require("./routes/userRoutes");
 const authRouter = require("./routes/authRoutes");
 const employeeTaskRouter = require("./routes/employeeTaskRoute");
-const adminRouter = require("./routes/adminRoute");
+const hrRouter = require("./routes/hrRoutes");
+const adminRouter = require('./routes/adminRoutes');
 const paymentRoute = require("./routes/paymentRouter");
 
 const app = express();
@@ -26,8 +27,9 @@ const routers = [
   userRouter,
   authRouter,
   employeeTaskRouter,
-  adminRouter,
+  hrRouter,
   paymentRoute,
+  adminRouter,
 ];
 
 routers.forEach((router) => {
