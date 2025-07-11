@@ -1,4 +1,5 @@
 const User = require("../model/User");
+const PaymentRequest = require("../model/paymentRequest");
 
 exports.getAllEmployees = async (req, res) => {
   try {
@@ -16,14 +17,15 @@ exports.getAllEmployees = async (req, res) => {
   }
 };
 
-
 exports.toggleVerify = async (req, res) => {
   const { id } = req.params;
   const { isVerified } = req.body;
 
   // Check if the 'isVerified' field is provided
-  if (typeof isVerified !== 'boolean') {
-    return res.status(400).json({ message: "The 'isVerified' field must be a boolean." });
+  if (typeof isVerified !== "boolean") {
+    return res
+      .status(400)
+      .json({ message: "The 'isVerified' field must be a boolean." });
   }
 
   try {
@@ -39,10 +41,38 @@ exports.toggleVerify = async (req, res) => {
       return res.status(404).json({ message: "User not found." });
     }
 
-    res.json({ message: "Verification status updated successfully", user: updatedUser });
+    res.json({
+      message: "Verification status updated successfully",
+      user: updatedUser,
+    });
   } catch (error) {
-    console.error('Error updating verification status:', error);
-    res.status(500).json({ message: "Server error. Unable to update verification status." });
+    console.error("Error updating verification status:", error);
+    res
+      .status(500)
+      .json({ message: "Server error. Unable to update verification status." });
   }
 };
 
+exports.getEmployeeAndPayments = async (req, res) => {
+  try {
+    const employeeId = req.params.id;
+
+    // 1. Get the employee
+    const employee = await User.findById(employeeId);
+    if (!employee) {
+      return res.status(404).json({ message: "Employee not found" });
+    }
+
+    // 2. Get payment data for that employee
+    const payments = await PaymentRequest.find({ employeeId });
+
+    // 3. Return both in one response
+    res.status(200).json({
+      employee,
+      payments,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};

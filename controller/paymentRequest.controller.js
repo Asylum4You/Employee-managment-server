@@ -36,3 +36,19 @@ exports.createPaymentRequest = async (req, res) => {
       .json({ message: "Server error. Unable to create payment request." });
   }
 };
+
+exports.getPaymentsForMonth = async (req, res) => {
+  try {
+    const month = req.query.month.toLowerCase();
+    const year = parseInt(req.query.year);
+    const payments = await PaymentRequest.find({ 
+      month,
+      year,
+      paymentStatus: { $in: ["Pending", "Paid"] },
+    });
+
+    res.json(payments);
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
+};

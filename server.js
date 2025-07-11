@@ -22,13 +22,13 @@ app.use(cookieParser());
 
 connectDB();
 
-const routers = {
+const routers = [
   userRouter,
   authRouter,
   employeeTaskRouter,
   adminRouter,
   paymentRoute,
-};
+];
 
 routers.forEach((router) => {
   app.use("/web/api/", router);
