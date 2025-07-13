@@ -8,6 +8,7 @@ exports.getAllEmployees = async (req, res) => {
 
     res.status(201).json(employees);
   } catch (error) {
+    console.log(error)
     res.status(404).json({ message: "Internal server error" });
   }
 };
