@@ -1,6 +1,7 @@
 const User = require("../model/User");
 const PaymentRequest = require("../model/paymentRequest");
 
+
 exports.getAllEmployees = async (req, res) => {
   try {
     // ✅ Check role (you must add the role info to req.user in auth middleware)
@@ -12,7 +13,32 @@ exports.getAllEmployees = async (req, res) => {
     const employees = await User.find({ role: "employee" });
     res.status(200).json(employees);
   } catch (error) {
-    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+exports.getAllEmployeesWithCurrentPayments = async (req, res) => {
+  try {
+    // Fetch all employees
+    const employees = await User.find({ role: "employee" });
+
+    // Get current month and year (if not sent from front-end, fallback to server date)
+    const month = (
+      req.query.month || new Date().toLocaleString("default", { month: "long" })
+    ).toLowerCase();
+    const year = parseInt(req.query.year) || new Date().getFullYear();
+
+    // Fetch this month's payments (Pending or Paid)
+    const payments = await PaymentRequest.find({
+      month,
+      year,
+      paymentStatus: { $in: ["Pending", "Paid"] },
+    });
+
+    // Send both in a single response
+    res.status(200).json({ employees, payments });
+  } catch (error) {
+    console.error("Failed to fetch employees or payments", error);
     res.status(500).json({ message: "Server Error" });
   }
 };
@@ -72,7 +98,6 @@ exports.getEmployeeAndPayments = async (req, res) => {
       payments,
     });
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: "Server Error" });
   }
 };

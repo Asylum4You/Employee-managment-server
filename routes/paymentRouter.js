@@ -1,10 +1,17 @@
 const express = require("express");
-const { createPaymentRequest, getPaymentsForMonth, paySalary } = require("../controller/paymentRequest.controller");
+const {
+  createPaymentRequest,
+  getPaymentHistory,
+  createPaymentIntent,
+  updatePaymentStatus,
+} = require("../controller/paymentRequest.controller");
+const { verifyJWT } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
 router.post("/payments-request", createPaymentRequest);
-router.get('/payments/monthly', getPaymentsForMonth);
-router.post("/payments/pay/:paymentRequestId", paySalary); 
+router.post("/payments/create-payment-intent", createPaymentIntent);
+router.patch("/payments/:id/update-payment-status", updatePaymentStatus);
+router.get("/payment-history", verifyJWT, getPaymentHistory);
 
 module.exports = router;

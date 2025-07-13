@@ -1,4 +1,5 @@
 const PaymentRequest = require("../model/paymentRequest");
+const User = require("../model/User");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 exports.createPaymentRequest = async (req, res) => {
@@ -11,6 +12,7 @@ exports.createPaymentRequest = async (req, res) => {
     month,
     year,
     paymentRequestedBy,
+    designation,
   } = req.body;
 
   try {
@@ -18,6 +20,7 @@ exports.createPaymentRequest = async (req, res) => {
       employeeId,
       employeeName,
       employeeEmail,
+      designation,
       salary,
       bankAccount,
       month,
@@ -38,19 +41,23 @@ exports.createPaymentRequest = async (req, res) => {
   }
 };
 
-exports.getPaymentsForMonth = async (req, res) => {
-  try {
-    const month = req.query.month.toLowerCase();
-    const year = parseInt(req.query.year);
-    const payments = await PaymentRequest.find({
-      month,
-      year,
-      paymentStatus: { $in: ["Pending", "Paid"] },
-    });
+// Get individual payment history;
+exports.getPaymentHistory = async (req, res) => {
+  const uid = req.user.uid;
 
-    res.json(payments);
-  } catch (err) {
-    res.status(500).json({ error: "Server error" });
+  try {
+    const employee = await User.findOne({ uid });
+    if (!employee)
+      return res.status(404).json({ message: "employee not found" });
+
+
+    const paymentHistory = await PaymentRequest.find({
+      employeeId: employee._id,
+    });
+    console.log(paymentHistory);
+    res.status(200).json(paymentHistory);
+  } catch (error) {
+    res.status(500).json({ message: "internal server error" });
   }
 };
 
@@ -77,35 +84,21 @@ exports.getAllPaymentRequests = async (req, res) => {
   }
 };
 
-
-
-
 // Admin pays salary through Stripe
-exports.paySalary = async (req, res) => {
-  const { paymentRequestId } = req.params;
+exports.createPaymentIntent = async (req, res) => {
+  const { amount } = req.body;
+  const amountInCents = amount * 100;
 
   try {
-    const paymentRequest = await PaymentRequest.findById(paymentRequestId);
-    if (!paymentRequest) return res.status(404).json({ error: "Payment request not found" });
-    if (paymentRequest.paymentStatus === "Paid") return res.status(400).json({ error: "Already paid" });
-
-    // ✅ Create a PaymentIntent
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: paymentRequest.salary * 100, // Stripe uses cents
+      amount: amountInCents,
       currency: "usd",
       payment_method_types: ["card"],
-      description: `Salary for ${paymentRequest.employeeName} - ${paymentRequest.month} ${paymentRequest.year}`,
+      metadata: { integration_check: "accept_a_payment" },
     });
 
-    // ✅ Update the DB after successful payment simulation
-    paymentRequest.paymentStatus = "Paid";
-    paymentRequest.paymentDate = new Date();
-    await paymentRequest.save();
-
     res.status(200).json({
-      message: "Payment successful",
-      paymentIntent,
-      updatedPayment: paymentRequest,
+      clientSecret: paymentIntent.client_secret,
     });
   } catch (error) {
     console.error(error);
@@ -113,3 +106,26 @@ exports.paySalary = async (req, res) => {
   }
 };
 
+// update the payment status of employee;
+
+exports.updatePaymentStatus = async (req, res) => {
+  const transactionId = req.body.transactionId;
+  const date = req.body.date;
+  const id = req.params.id;
+  console.log(id, transactionId, date);
+
+  try {
+    const payment = await PaymentRequest.findById(id);
+
+    if (!payment) {
+      return res.status(404).json({ message: "Payment data not found" });
+    }
+    payment.paymentStatus = "Paid";
+    payment.transactionId = transactionId;
+    payment.paymentDate = date;
+    await payment.save();
+    res.status(200).json({ message: "Payment status updated", payment });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

@@ -7,17 +7,18 @@ const userRouter = require("./routes/userRoutes");
 const authRouter = require("./routes/authRoutes");
 const employeeTaskRouter = require("./routes/employeeTaskRoute");
 const hrRouter = require("./routes/hrRoutes");
-const adminRouter = require('./routes/adminRoutes');
+const adminRouter = require("./routes/adminRoutes");
 const paymentRoute = require("./routes/paymentRouter");
 
 const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173", "http://192.168.144.87:5173"],
     credentials: true,
   })
 );
+
 app.use(express.json());
 app.use(cookieParser());
 
@@ -37,7 +38,7 @@ routers.forEach((router) => {
 });
 
 app.get("/", (req, res) => {
-  res.send("Api Working");
+  res.send("Hi I'm working perfectly");
 });
 
 const PORT = process.env.PORT;

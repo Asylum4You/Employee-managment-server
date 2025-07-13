@@ -4,7 +4,7 @@ const User = require("../model/User");
 exports.addEmployeeTask = async (req, res) => {
   const { task, hours, date, employeeName, month } = req.body;
   const uid = req.user.uid;
-
+  console.log(uid)
   try {
     const employee = await User.findOne({ uid });
     if (!employee)
@@ -19,11 +19,9 @@ exports.addEmployeeTask = async (req, res) => {
       employeeId: employee._id,
       month,
     });
-    console.log(newTask);
     const savedTask = await newTask.save();
     res.status(201).json(savedTask);
   } catch (error) {
-    console.log(error);
     res.status(500).json({ message: "Failed to add task" });
   }
 };
@@ -53,7 +51,6 @@ exports.getEmployeeTaskById = async (req, res) => {
 
     res.status(201).json(tasks);
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: "Failed to get tasks" });
   }
 };

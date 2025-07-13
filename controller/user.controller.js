@@ -75,7 +75,7 @@ const checkUserExist = async (req, res) => {
     const email = req.params.email;
     const user = await User.findOne({ email });
     if (user) {
-      res.json({ exists: true, user });
+     return res.json({ exists: true, user });
     }
 
     return res.json({ exists: false });
@@ -84,8 +84,20 @@ const checkUserExist = async (req, res) => {
   }
 };
 
+const getUserData = async (req, res) => {
+  const uid = req.params.uid;
+  try {
+    const user = await User.findOne({ uid });
+    if (!user) return res.status(404).json({ message: "user not fund" });
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 module.exports = {
   registerUser,
   getUserByEmail,
-  checkUserExist
+  checkUserExist,
+  getUserData,
 };

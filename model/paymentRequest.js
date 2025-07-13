@@ -4,7 +4,7 @@ const paymentRequestSchema = new mongoose.Schema(
   {
     employeeId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",  // Reference to User model
+      ref: "User", // Reference to User model
       required: true,
     },
     employeeName: {
@@ -12,6 +12,10 @@ const paymentRequestSchema = new mongoose.Schema(
       required: true,
     },
     employeeEmail: {
+      type: String,
+      required: true,
+    },
+    designation: {
       type: String,
       required: true,
     },
@@ -34,16 +38,17 @@ const paymentRequestSchema = new mongoose.Schema(
     paymentStatus: {
       type: String,
       enum: ["Pending", "Paid", "Rejected"],
-      default: "Pending",  // Default status is "Pending"
+      default: "Pending", // Default status is "Pending"
     },
     paymentDate: {
       type: Date,
-      default: null,  // Will be updated when payment is made
+      default: null, // Will be updated when payment is made
     },
     paymentRequestedBy: {
-      type: String,  // HR or Admin
+      type: String, // HR or Admin
       required: true,
     },
+    transactionId: { type: String, default: null },
   },
   { timestamps: true }
 );
