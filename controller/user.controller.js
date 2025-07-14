@@ -73,6 +73,7 @@ const getUserByEmail = async (req, res) => {
 const checkUserExist = async (req, res) => {
   try {
     const email = req.params.email;
+    console.log(email)
     const user = await User.findOne({ email });
     if (user) {
      return res.json({ exists: true, user });

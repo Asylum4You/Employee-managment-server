@@ -10,6 +10,7 @@ exports.addEmployeeTask = async (req, res) => {
     if (!employee)
       return res.status(404).json({ message: "employee not found" });
 
+
     const newTask = new EmployeeTask({
       task,
       hours,
@@ -22,7 +23,8 @@ exports.addEmployeeTask = async (req, res) => {
     const savedTask = await newTask.save();
     res.status(201).json(savedTask);
   } catch (error) {
-    res.status(500).json({ message: "Failed to add task" });
+    console.log(error)
+    res.status(500).json({ message: "Failed to add task", error: error.message});
   }
 };
 

@@ -9,12 +9,13 @@ const employeeTaskRouter = require("./routes/employeeTaskRoute");
 const hrRouter = require("./routes/hrRoutes");
 const adminRouter = require("./routes/adminRoutes");
 const paymentRoute = require("./routes/paymentRouter");
+const contactRouter = require("./routes/contactRoutes");
 
 const app = express();
 
 app.use(
   cors({
-    origin: 'https://worksyncemployee.netlify.app',
+    origin: ["https://worksyncemployee.netlify.app", "http://localhost:5173"],
     credentials: true,
   })
 );
@@ -31,6 +32,7 @@ const routers = [
   hrRouter,
   paymentRoute,
   adminRouter,
+  contactRouter,
 ];
 
 routers.forEach((router) => {
@@ -43,6 +45,6 @@ app.get("/", (req, res) => {
 
 const PORT = process.env.PORT;
 
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port http://localhost:${PORT}`);
 });

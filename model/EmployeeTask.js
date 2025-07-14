@@ -6,7 +6,27 @@ const employeeTaskSchema = new mongoose.Schema(
     task: {
       type: String,
       required: true,
-      enum: ["Sales", "Support", "Content", "Paper-work"],
+      enum: [
+        "Sales",
+        "Support",
+        "Content",
+        "Paper-work",
+        "Marketing",
+        "Development",
+        "Design",
+        "Meeting",
+        "Research",
+        "Training",
+        "Testing",
+        "Data Entry",
+        "Customer Feedback",
+        "Documentation",
+        "Bug Fixing",
+        "Inventory",
+        "Social Media",
+        "Recruitment",
+        "Planning",
+      ],
     },
     hours: {
       type: Number,
@@ -28,8 +48,8 @@ const employeeTaskSchema = new mongoose.Schema(
     employeeId: {
       type: String,
       required: true,
-      ref: 'User',
-    }
+      ref: "User",
+    },
   },
   { timestamps: true }
 );

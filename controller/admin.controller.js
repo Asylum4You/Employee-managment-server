@@ -2,7 +2,7 @@ const User = require("../model/User");
 
 exports.getAllEmployees = async (req, res) => {
   try {
-    const employees = await User.find({ isVerified: true, isFired: false });
+    const employees = await User.find({ isVerified: true, }).sort({isFired: 1});
     if (!employees)
       return res.status(404).json({ message: "employees not found" });
 

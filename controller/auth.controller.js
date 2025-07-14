@@ -5,6 +5,7 @@ const User = require("../model/User");
 exports.login = async (req, res) => {
   try {
     const firebaseToken = req.headers.authorization?.split(" ")[1];
+    console.log(firebaseToken);
     if (!firebaseToken)
       return res.status(401).json({ message: "Unauthorized" });
 
@@ -26,18 +27,18 @@ exports.login = async (req, res) => {
 
     res.cookie("token", jwtToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: true, // important for HTTPS
+      sameSite: "None", // must be "None" for cross-site
       maxAge: 7 * 24 * 60 * 60 * 1000,
-      sameSite: "Lax",
     });
-    res.json({ message: "Login successfully" });
+    res.json({ message: "Login successfully", jwtToken });
   } catch (error) {}
 };
 
 exports.logout = async (req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: true,
     sameSite: "Lax",
   });
   res.json({ message: "Logged out successfully" });

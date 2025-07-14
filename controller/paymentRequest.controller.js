@@ -42,24 +42,60 @@ exports.createPaymentRequest = async (req, res) => {
 };
 
 // Get individual payment history;
+// exports.getPaymentHistory = async (req, res) => {
+//   const uid = req.user.uid;
+
+//   try {
+//     const employee = await User.findOne({ uid });
+//     if (!employee)
+//       return res.status(404).json({ message: "employee not found" });
+
+
+//     const paymentHistory = await PaymentRequest.find({
+//       employeeId: employee._id,
+//     });
+//     console.log(paymentHistory);
+//     res.status(200).json(paymentHistory);
+//   } catch (error) {
+//     res.status(500).json({ message: "internal server error" });
+//   }
+// };
+
+
 exports.getPaymentHistory = async (req, res) => {
   const uid = req.user.uid;
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 5;
+  const skip = (page - 1) * limit;
 
   try {
     const employee = await User.findOne({ uid });
-    if (!employee)
-      return res.status(404).json({ message: "employee not found" });
 
+    if (!employee) {
+      return res.status(404).json({ message: "Employee not found" });
+    }
 
-    const paymentHistory = await PaymentRequest.find({
-      employeeId: employee._id,
+    const total = await PaymentRequest.countDocuments({ employeeId: employee._id });
+
+    const paymentHistory = await PaymentRequest.find({ employeeId: employee._id })
+      .sort({ paymentDate: -1 }) // optional: sort latest first
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      data: paymentHistory,
     });
-    console.log(paymentHistory);
-    res.status(200).json(paymentHistory);
   } catch (error) {
-    res.status(500).json({ message: "internal server error" });
+    console.error("Error in getPaymentHistory:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
 
 // GET /api/admin/payments
 exports.getAllPaymentRequests = async (req, res) => {
