@@ -15,7 +15,10 @@ const app = express();
 
 app.use(
   cors({
-    origin: ["https://worksyncemployee.netlify.app", "http://localhost:5173"],
+    origin: [
+      "https://worksyncemployee.netlify.app",
+      "http://localhost:5173",
+    ],
     credentials: true,
   })
 );

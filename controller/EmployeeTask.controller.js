@@ -1,15 +1,15 @@
 const EmployeeTask = require("../model/EmployeeTask");
 const User = require("../model/User");
+const PaymentRequest = require("../model/paymentRequest");
 
 exports.addEmployeeTask = async (req, res) => {
   const { task, hours, date, employeeName, month } = req.body;
   const uid = req.user.uid;
-  console.log(uid)
+  console.log(uid);
   try {
     const employee = await User.findOne({ uid });
     if (!employee)
       return res.status(404).json({ message: "employee not found" });
-
 
     const newTask = new EmployeeTask({
       task,
@@ -23,8 +23,10 @@ exports.addEmployeeTask = async (req, res) => {
     const savedTask = await newTask.save();
     res.status(201).json(savedTask);
   } catch (error) {
-    console.log(error)
-    res.status(500).json({ message: "Failed to add task", error: error.message});
+    console.log(error);
+    res
+      .status(500)
+      .json({ message: "Failed to add task", error: error.message });
   }
 };
 
@@ -82,5 +84,80 @@ exports.updateTask = async (req, res) => {
     res.json(updatedTask);
   } catch (error) {
     res.status(500).json({ message: "Failed to update task" });
+  }
+};
+
+exports.getEmployeeOverview = async (req, res) => {
+  try {
+    const userUID = req.user.uid;
+
+    const user = await User.findOne({ uid: userUID });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const currentDate = new Date();
+    const month = currentDate
+      .toLocaleString("default", { month: "long" })
+      .toLowerCase();
+    const year = currentDate.getFullYear();
+
+    // ✅ Get current month's payment
+    const currentPayment = await PaymentRequest.findOne({
+      employeeEmail: user.email,
+      month,
+      year,
+      paymentStatus: "Paid",
+    });
+
+    const totalPayment = await PaymentRequest.find({
+      employeeEmail: user.email,
+      paymentStatus: "Paid",
+    });
+
+    // ✅ Get all pending payments
+    const pendingPayments = await PaymentRequest.find({
+      employeeEmail: user.email,
+      paymentStatus: "Pending",
+    });
+
+    // ✅ Total work hours this month
+    const totalHours = await EmployeeTask.aggregate([
+      {
+        $match: {
+          uid: user.uid, // ✅ this is the correct field
+          $expr: {
+            $and: [
+              { $eq: [{ $month: "$date" }, currentDate.getMonth() + 1] },
+              { $eq: [{ $year: "$date" }, currentDate.getFullYear()] },
+            ],
+          },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$hours" },
+        },
+      },
+    ]);
+
+    // ✅ Recent 5 payments
+    const recentPayments = await PaymentRequest.find({
+      employeeEmail: user.email,
+      paymentStatus: "Paid",
+    })
+      .sort({ createdAt: -1 })
+      .limit(5);
+
+    res.status(200).json({
+      salaryThisMonth: currentPayment?.salary || 0,
+      totalPayment,
+      totalWorkHours: totalHours[0]?.total || 0,
+      pendingPayments: pendingPayments.length,
+      isVerified: user.isVerified,
+      recentPayments,
+    });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ message: "Server error" });
   }
 };

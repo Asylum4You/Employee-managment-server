@@ -87,6 +87,7 @@ const checkUserExist = async (req, res) => {
 
 const getUserData = async (req, res) => {
   const uid = req.params.uid;
+  
   try {
     const user = await User.findOne({ uid });
     if (!user) return res.status(404).json({ message: "user not fund" });
@@ -102,3 +103,4 @@ module.exports = {
   checkUserExist,
   getUserData,
 };
+ 

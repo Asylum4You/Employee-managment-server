@@ -1,7 +1,6 @@
 const User = require("../model/User");
 const PaymentRequest = require("../model/paymentRequest");
 
-
 exports.getAllEmployees = async (req, res) => {
   try {
     // ✅ Check role (you must add the role info to req.user in auth middleware)
@@ -99,5 +98,55 @@ exports.getEmployeeAndPayments = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: "Server Error" });
+  }
+};
+
+// Controller: getHrOverviewData
+exports.getHrOverviewData = async (req, res) => {
+  try {
+    const totalEmployees = await User.countDocuments({ role: "employee" });
+    const verifiedEmployees = await User.countDocuments({
+      role: "employee",
+      isVerified: true,
+    });
+    const pendingVerifications = await User.countDocuments({
+      role: "employee",
+      isVerified: false,
+    });
+    const pendingSalaryRequests = await PaymentRequest.countDocuments({
+      paymentStatus: "Pending",
+    });
+
+    res.json({
+      totalEmployees,
+      verifiedEmployees,
+      pendingVerifications,
+      pendingSalaryRequests,
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch HR overview data" });
+  }
+};
+
+
+
+
+exports.getHrPaymentSummary = async (req, res) => {
+  try {
+    const summary = await PaymentRequest.aggregate([
+      {
+        $group: {
+          _id: { month: "$month", year: "$year", status: "$paymentStatus" },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { "_id.year": 1, "_id.month": 1 },
+      },
+    ]);
+
+    res.json(summary);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to get payment summary" });
   }
 };
