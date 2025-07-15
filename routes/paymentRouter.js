@@ -9,8 +9,8 @@ const { verifyJWT } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-router.post("/payments-request", createPaymentRequest);
-router.post("/payments/create-payment-intent", createPaymentIntent);
+router.post("/payments-request", verifyJWT, createPaymentRequest);
+router.post("/payments/create-payment-intent", verifyJWT, createPaymentIntent);
 router.patch("/payments/:id/update-payment-status", updatePaymentStatus);
 router.get("/payment-history", verifyJWT, getPaymentHistory);
 

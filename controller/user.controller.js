@@ -33,7 +33,6 @@ const registerUser = async (req, res) => {
     // Save the user to the database
     await newUser.save();
 
-    // Respond with success message and the new user data (excluding the password)
     res.status(201).json({
       message: "User registered successfully!",
       user: {
@@ -50,7 +49,6 @@ const registerUser = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error(error);
     res
       .status(500)
       .json({ message: "Something went wrong, please try again later." });
@@ -73,10 +71,9 @@ const getUserByEmail = async (req, res) => {
 const checkUserExist = async (req, res) => {
   try {
     const email = req.params.email;
-    console.log(email)
     const user = await User.findOne({ email });
     if (user) {
-     return res.json({ exists: true, user });
+      return res.json({ exists: true, user });
     }
 
     return res.json({ exists: false });
@@ -87,7 +84,7 @@ const checkUserExist = async (req, res) => {
 
 const getUserData = async (req, res) => {
   const uid = req.params.uid;
-  
+
   try {
     const user = await User.findOne({ uid });
     if (!user) return res.status(404).json({ message: "user not fund" });
@@ -103,4 +100,3 @@ module.exports = {
   checkUserExist,
   getUserData,
 };
- 

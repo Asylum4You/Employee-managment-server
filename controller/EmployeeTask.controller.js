@@ -5,7 +5,11 @@ const PaymentRequest = require("../model/paymentRequest");
 exports.addEmployeeTask = async (req, res) => {
   const { task, hours, date, employeeName, month } = req.body;
   const uid = req.user.uid;
-  console.log(uid);
+  const role = req.user.role;
+
+  if (role !== "employee")
+    return res.status(403).json({ message: "Forbidden: Access denied" });
+
   try {
     const employee = await User.findOne({ uid });
     if (!employee)
@@ -23,7 +27,6 @@ exports.addEmployeeTask = async (req, res) => {
     const savedTask = await newTask.save();
     res.status(201).json(savedTask);
   } catch (error) {
-    console.log(error);
     res
       .status(500)
       .json({ message: "Failed to add task", error: error.message });
@@ -31,6 +34,11 @@ exports.addEmployeeTask = async (req, res) => {
 };
 
 exports.getEmployeeTasksRecords = async (req, res) => {
+  const role = req.user.role;
+
+  if (role !== "hr")
+    return res.status(403).json({ message: "Forbidden: Access denied" });
+
   const { employeeId, month } = req.query;
   const filter = { ...(employeeId ? { employeeId } : {}), month };
 
@@ -45,6 +53,11 @@ exports.getEmployeeTasksRecords = async (req, res) => {
 };
 
 exports.getEmployeeTaskById = async (req, res) => {
+  const role = req.user.role;
+
+  if (role !== "employee")
+    return res.status(403).json({ message: "Forbidden: Access denied" });
+
   try {
     const { uid } = req.params;
     const tasks = await EmployeeTask.find({ uid }).sort({
@@ -60,6 +73,11 @@ exports.getEmployeeTaskById = async (req, res) => {
 };
 
 exports.deleteTask = async (req, res) => {
+  const role = req.user.role;
+
+  if (role !== "employee")
+    return res.status(403).json({ message: "Forbidden: Access denied" });
+
   try {
     const taskId = req.params.id;
     await EmployeeTask.findByIdAndDelete(taskId);
@@ -71,6 +89,10 @@ exports.deleteTask = async (req, res) => {
 
 // PUT /employee-task/:id
 exports.updateTask = async (req, res) => {
+  const role = req.user.role;
+
+  if (role !== "employee")
+    return res.status(403).json({ message: "Forbidden: Access denied" });
   try {
     const taskId = req.params.id;
     const { task, hours, date } = req.body;
@@ -88,6 +110,10 @@ exports.updateTask = async (req, res) => {
 };
 
 exports.getEmployeeOverview = async (req, res) => {
+  const role = req.user.role;
+
+  if (role !== "employee")
+    return res.status(403).json({ message: "Forbidden: Access denied" });
   try {
     const userUID = req.user.uid;
 

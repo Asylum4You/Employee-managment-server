@@ -2,13 +2,10 @@ const User = require("../model/User");
 const PaymentRequest = require("../model/paymentRequest");
 
 exports.getAllEmployees = async (req, res) => {
-  try {
-    // ✅ Check role (you must add the role info to req.user in auth middleware)
-    // if (req.user.role !== "employee") {
-    //   return res.status(403).json({ message: "Forbidden: Access denied" });
-    // }
+  if (req.user.role !== "hr")
+    return res.status(403).json({ message: "Forbidden: Access denied" });
 
-    // ✅ Fetch employee data (you can customize fields)
+  try {
     const employees = await User.find({ role: "employee" });
     res.status(200).json(employees);
   } catch (error) {
@@ -17,6 +14,9 @@ exports.getAllEmployees = async (req, res) => {
 };
 
 exports.getAllEmployeesWithCurrentPayments = async (req, res) => {
+  if (req.user.role !== "hr")
+    return res.status(403).json({ message: "Forbidden: Access denied" });
+
   try {
     // Fetch all employees
     const employees = await User.find({ role: "employee" });
@@ -45,6 +45,8 @@ exports.getAllEmployeesWithCurrentPayments = async (req, res) => {
 exports.toggleVerify = async (req, res) => {
   const { id } = req.params;
   const { isVerified } = req.body;
+  if (req.user.role !== "hr")
+    return res.status(403).json({ message: "Forbidden: Access denied" });
 
   // Check if the 'isVerified' field is provided
   if (typeof isVerified !== "boolean") {
@@ -54,14 +56,12 @@ exports.toggleVerify = async (req, res) => {
   }
 
   try {
-    // Find the user by ID and update their verification status
     const updatedUser = await User.findByIdAndUpdate(
       id,
       { isVerified },
       { new: true } // This option returns the updated document
     );
 
-    // If no user is found with the provided ID
     if (!updatedUser) {
       return res.status(404).json({ message: "User not found." });
     }
@@ -79,6 +79,9 @@ exports.toggleVerify = async (req, res) => {
 };
 
 exports.getEmployeeAndPayments = async (req, res) => {
+  if (req.user.role !== "hr")
+    return res.status(403).json({ message: "Forbidden: Access denied" });
+
   try {
     const employeeId = req.params.id;
 
@@ -103,6 +106,9 @@ exports.getEmployeeAndPayments = async (req, res) => {
 
 // Controller: getHrOverviewData
 exports.getHrOverviewData = async (req, res) => {
+  if (req.user.role !== "hr")
+    return res.status(403).json({ message: "Forbidden: Access denied" });
+
   try {
     const totalEmployees = await User.countDocuments({ role: "employee" });
     const verifiedEmployees = await User.countDocuments({
@@ -128,9 +134,10 @@ exports.getHrOverviewData = async (req, res) => {
   }
 };
 
-
-
 exports.getHrPaymentSummary = async (req, res) => {
+  if (req.user.role !== "hr")
+    return res.status(403).json({ message: "Forbidden: Access denied" });
+
   try {
     const summary = await PaymentRequest.aggregate([
       {
@@ -150,14 +157,24 @@ exports.getHrPaymentSummary = async (req, res) => {
   }
 };
 
-
-
 const monthNames = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 exports.getPayrollRequestStats = async (req, res) => {
+  if (req.user.role !== "hr")
+    return res.status(403).json({ message: "Forbidden: Access denied" });
   try {
     const currentYear = new Date().getFullYear();
 
@@ -189,8 +206,9 @@ exports.getPayrollRequestStats = async (req, res) => {
   }
 };
 
-
 exports.getLatestPayments = async (req, res) => {
+  if (req.user.role !== "hr")
+    return res.status(403).json({ message: "Forbidden: Access denied" });
   try {
     const latestPayments = await PaymentRequest.find()
       .sort({ createdAt: -1 })

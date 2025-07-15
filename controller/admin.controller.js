@@ -2,6 +2,11 @@ const User = require("../model/User");
 const PaymentRequest = require("../model/paymentRequest");
 
 exports.getAllEmployees = async (req, res) => {
+  const role = req.user.role;
+
+  if (role !== "admin")
+     return res.status(403).json({ message: "Forbidden: Access denied" });
+
   try {
     const employees = await User.find({ isVerified: true }).sort({
       isFired: 1,
@@ -11,7 +16,6 @@ exports.getAllEmployees = async (req, res) => {
 
     res.status(201).json(employees);
   } catch (error) {
-    console.log(error);
     res.status(404).json({ message: "Internal server error" });
   }
 };
@@ -19,6 +23,11 @@ exports.getAllEmployees = async (req, res) => {
 exports.updateEmployeeSalary = async (req, res) => {
   const id = req.params.id;
   const salary = req.body.salary;
+
+  const role = req.user.role;
+
+  if (role !== "admin")
+     return res.status(403).json({ message: "Forbidden: Access denied" });
 
   try {
     const employee = await User.findById(id);
@@ -34,14 +43,18 @@ exports.updateEmployeeSalary = async (req, res) => {
 
 exports.makeEmployeeToHr = async (req, res) => {
   const id = req.params.id;
-  const role = req.body.role;
+  const userRole = req.body.role;
+  const role = req.user.role;
+
+  if (role !== "admin")
+     return res.status(403).json({ message: "Forbidden: Access denied" });
 
   try {
     const employee = await User.findById(id);
     if (!employee)
       return res.status(404).json({ message: "employee not found" });
 
-    employee.role = role;
+    employee.role = userRole;
     await employee.save();
     res
       .status(201)
@@ -53,6 +66,11 @@ exports.makeEmployeeToHr = async (req, res) => {
 
 exports.firedEmployees = async (req, res) => {
   const id = req.params.id;
+
+  const role = req.user.role;
+
+  if (role !== "admin")
+     return res.status(403).json({ message: "Forbidden: Access denied" });
 
   try {
     const employee = await User.findById(id);
@@ -68,6 +86,11 @@ exports.firedEmployees = async (req, res) => {
 };
 
 exports.getAdminOverview = async (req, res) => {
+  const role = req.user.role;
+
+  if (role !== "admin")
+     return res.status(403).json({ message: "Forbidden: Access denied" });
+
   try {
     const [totalUsers, admins, hrs, employees] = await Promise.all([
       User.countDocuments(),
@@ -114,9 +137,11 @@ exports.getAdminOverview = async (req, res) => {
   }
 };
 
-
-
 exports.getMonthlyUserGrowth = async (req, res) => {
+  const role = req.user.role;
+  if (role !== "admin")
+     return res.status(403).json({ message: "Forbidden: Access denied" });
+
   try {
     const year = parseInt(req.query.year) || new Date().getFullYear();
 
@@ -136,13 +161,23 @@ exports.getMonthlyUserGrowth = async (req, res) => {
         },
       },
       {
-        $sort: { "_id": 1 },
+        $sort: { _id: 1 },
       },
     ]);
 
     const fullMonths = [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December",
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
     ];
 
     const result = fullMonths.map((month, index) => {

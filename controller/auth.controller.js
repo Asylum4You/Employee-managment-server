@@ -5,7 +5,6 @@ const User = require("../model/User");
 exports.login = async (req, res) => {
   try {
     const firebaseToken = req.headers.authorization?.split(" ")[1];
-    console.log(firebaseToken);
     if (!firebaseToken)
       return res.status(401).json({ message: "Unauthorized" });
 

@@ -3,6 +3,8 @@ const User = require("../model/User");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 exports.createPaymentRequest = async (req, res) => {
+  if (req.user.role !== "hr")
+    return res.status(403).json({ message: "Forbidden: Access denied" });
   const {
     employeeId,
     employeeName,
@@ -41,32 +43,14 @@ exports.createPaymentRequest = async (req, res) => {
   }
 };
 
-// Get individual payment history;
-// exports.getPaymentHistory = async (req, res) => {
-//   const uid = req.user.uid;
-
-//   try {
-//     const employee = await User.findOne({ uid });
-//     if (!employee)
-//       return res.status(404).json({ message: "employee not found" });
-
-
-//     const paymentHistory = await PaymentRequest.find({
-//       employeeId: employee._id,
-//     });
-//     console.log(paymentHistory);
-//     res.status(200).json(paymentHistory);
-//   } catch (error) {
-//     res.status(500).json({ message: "internal server error" });
-//   }
-// };
-
-
 exports.getPaymentHistory = async (req, res) => {
   const uid = req.user.uid;
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 5;
   const skip = (page - 1) * limit;
+
+  if (req.user.role !== "employee")
+    return res.status(403).json({ message: "Forbidden: Access denied" });
 
   try {
     const employee = await User.findOne({ uid });
@@ -75,9 +59,13 @@ exports.getPaymentHistory = async (req, res) => {
       return res.status(404).json({ message: "Employee not found" });
     }
 
-    const total = await PaymentRequest.countDocuments({ employeeId: employee._id });
+    const total = await PaymentRequest.countDocuments({
+      employeeId: employee._id,
+    });
 
-    const paymentHistory = await PaymentRequest.find({ employeeId: employee._id })
+    const paymentHistory = await PaymentRequest.find({
+      employeeId: employee._id,
+    })
       .sort({ paymentDate: -1 }) // optional: sort latest first
       .skip(skip)
       .limit(limit);
@@ -95,16 +83,13 @@ exports.getPaymentHistory = async (req, res) => {
   }
 };
 
-
-
-// GET /api/admin/payments
 exports.getAllPaymentRequests = async (req, res) => {
+  if (req.user.role !== "admin")
+    return res.status(403).json({ message: "Forbidden: Access denied" });
   try {
-    const payments = await PaymentRequest.find().sort({ createdAt: -1 });
-
-    // if (payments.paymentStatus === "Paid") {
-    //   return res.status(400).json({ error: "Already paid" });
-    // }
+    const payments = await PaymentRequest.find({
+      paymentStatus: "Pending",
+    }).sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
@@ -122,6 +107,8 @@ exports.getAllPaymentRequests = async (req, res) => {
 
 // Admin pays salary through Stripe
 exports.createPaymentIntent = async (req, res) => {
+  if (req.user.role !== "admin")
+    return res.status(403).json({ message: "Forbidden: Access denied" });
   const { amount } = req.body;
   const amountInCents = amount * 100;
 
@@ -148,7 +135,6 @@ exports.updatePaymentStatus = async (req, res) => {
   const transactionId = req.body.transactionId;
   const date = req.body.date;
   const id = req.params.id;
-  console.log(id, transactionId, date);
 
   try {
     const payment = await PaymentRequest.findById(id);
