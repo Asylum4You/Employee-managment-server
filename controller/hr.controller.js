@@ -130,7 +130,6 @@ exports.getHrOverviewData = async (req, res) => {
 
 
 
-
 exports.getHrPaymentSummary = async (req, res) => {
   try {
     const summary = await PaymentRequest.aggregate([
@@ -148,5 +147,58 @@ exports.getHrPaymentSummary = async (req, res) => {
     res.json(summary);
   } catch (error) {
     res.status(500).json({ error: "Failed to get payment summary" });
+  }
+};
+
+
+
+const monthNames = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+
+exports.getPayrollRequestStats = async (req, res) => {
+  try {
+    const currentYear = new Date().getFullYear();
+
+    const stats = await PaymentRequest.aggregate([
+      {
+        $match: {
+          year: currentYear,
+        },
+      },
+      {
+        $group: {
+          _id: "$month",
+          totalRequests: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const result = monthNames.map((month) => {
+      const found = stats.find((s) => s._id === month.toLowerCase());
+      return {
+        month,
+        totalRequests: found ? found.totalRequests : 0,
+      };
+    });
+
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+exports.getLatestPayments = async (req, res) => {
+  try {
+    const latestPayments = await PaymentRequest.find()
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .populate("employeeId", "name email");
+
+    res.json(latestPayments);
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
   }
 };
