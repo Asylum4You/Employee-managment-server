@@ -1,11 +1,12 @@
 const User = require("../model/User");
 const PaymentRequest = require("../model/paymentRequest");
+const admin = require("../config/firebaseAdmin");
 
 exports.getAllEmployees = async (req, res) => {
   const role = req.user.role;
 
   if (role !== "admin")
-     return res.status(403).json({ message: "Forbidden: Access denied" });
+    return res.status(403).json({ message: "Forbidden: Access denied" });
 
   try {
     const employees = await User.find({ isVerified: true }).sort({
@@ -27,7 +28,7 @@ exports.updateEmployeeSalary = async (req, res) => {
   const role = req.user.role;
 
   if (role !== "admin")
-     return res.status(403).json({ message: "Forbidden: Access denied" });
+    return res.status(403).json({ message: "Forbidden: Access denied" });
 
   try {
     const employee = await User.findById(id);
@@ -47,7 +48,7 @@ exports.makeEmployeeToHr = async (req, res) => {
   const role = req.user.role;
 
   if (role !== "admin")
-     return res.status(403).json({ message: "Forbidden: Access denied" });
+    return res.status(403).json({ message: "Forbidden: Access denied" });
 
   try {
     const employee = await User.findById(id);
@@ -70,7 +71,7 @@ exports.firedEmployees = async (req, res) => {
   const role = req.user.role;
 
   if (role !== "admin")
-     return res.status(403).json({ message: "Forbidden: Access denied" });
+    return res.status(403).json({ message: "Forbidden: Access denied" });
 
   try {
     const employee = await User.findById(id);
@@ -78,6 +79,8 @@ exports.firedEmployees = async (req, res) => {
       return res.status(404).json({ message: "employee not found" });
     employee.isFired = true;
     await employee.save();
+
+    await admin.auth().updateUser(employee.uid, { disabled: true });
 
     res.status(201).json({ message: "successfully employee fired", employee });
   } catch (error) {
@@ -89,7 +92,7 @@ exports.getAdminOverview = async (req, res) => {
   const role = req.user.role;
 
   if (role !== "admin")
-     return res.status(403).json({ message: "Forbidden: Access denied" });
+    return res.status(403).json({ message: "Forbidden: Access denied" });
 
   try {
     const [totalUsers, admins, hrs, employees] = await Promise.all([
@@ -140,7 +143,7 @@ exports.getAdminOverview = async (req, res) => {
 exports.getMonthlyUserGrowth = async (req, res) => {
   const role = req.user.role;
   if (role !== "admin")
-     return res.status(403).json({ message: "Forbidden: Access denied" });
+    return res.status(403).json({ message: "Forbidden: Access denied" });
 
   try {
     const year = parseInt(req.query.year) || new Date().getFullYear();
@@ -192,5 +195,56 @@ exports.getMonthlyUserGrowth = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to fetch user growth data." });
+  }
+};
+
+exports.getEmployeeStatusTrend = async (req, res) => {
+  if (!req.user.uid) {
+    return res.status(404).json({ message: "Forbidden: access denied" });
+  }
+
+  try {
+    const year = parseInt(req.query.year) || new Date().getFullYear();
+
+    const users = await User.aggregate([
+      {
+        $match: {
+          role: { $in: ["employee", "hr"] },
+          createdAt: {
+            $gte: new Date(`${year}-01-01`),
+            $lte: new Date(`${year}-12-31`),
+          },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            month: { $month: "$createdAt" },
+            isFired: "$isFired",
+          },
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const result = Array.from({ length: 12 }, (_, i) => ({
+      month: new Date(0, i).toLocaleString("default", { month: "short" }),
+      active: 0,
+      fired: 0,
+    }));
+
+    users.forEach(({ _id, count }) => {
+      const monthIndex = _id.month - 1;
+      if (_id.isFired) {
+        result[monthIndex].fired += count;
+      } else {
+        result[monthIndex].active += count;
+      }
+    });
+
+    res.json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch employee status trend." });
   }
 };

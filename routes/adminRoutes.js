@@ -6,6 +6,7 @@ const {
   firedEmployees,
   getAdminOverview,
   getMonthlyUserGrowth,
+  getEmployeeStatusTrend,
 } = require("../controller/admin.controller");
 const {
   getAllPaymentRequests,
@@ -25,5 +26,7 @@ router.get(
 );
 router.get("/admin/overview", verifyJWT, getAdminOverview);
 router.get("/admin/user-growth", verifyJWT, getMonthlyUserGrowth);
+// routes/adminRoutes.js
+router.get("/admin/employee-status-trend", verifyJWT, getEmployeeStatusTrend);
 
 module.exports = router;

@@ -6,7 +6,7 @@ This is the **backend** of the full-stack role-based employee management system 
 
 ## 🌐 Live Server
 
-🔗 API Base URL: `https://your-backend-api.com`  
+🔗 API Base URL: `https://employee-management-server-ebon.vercel.app/`  
 📦 Frontend: [View Frontend Repository](https://github.com/Programming-Hero-Web-Course4/b11a12-client-side-layekmia.git)
 
 ---
@@ -46,8 +46,4 @@ This is the **backend** of the full-stack role-based employee management system 
 - **jsonwebtoken (JWT)** – Secure session auth
 - **Stripe** – For salary payments (Admin only)
 - **cookie-parser**, **cors**, **dotenv** – Utility middleware
-
----
-
-## 📂 Folder Structure
 

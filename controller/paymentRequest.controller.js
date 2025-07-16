@@ -87,9 +87,7 @@ exports.getAllPaymentRequests = async (req, res) => {
   if (req.user.role !== "admin")
     return res.status(403).json({ message: "Forbidden: Access denied" });
   try {
-    const payments = await PaymentRequest.find({
-      paymentStatus: "Pending",
-    }).sort({ createdAt: -1 });
+    const payments = await PaymentRequest.find().sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
