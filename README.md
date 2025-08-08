@@ -1,7 +1,6 @@
 # 🛠️ Employee Management Dashboard – Backend
 
 This is the **backend** of the full-stack role-based employee management system built with **Node.js**, **Express**, **MongoDB**, and **Firebase Admin SDK**. It includes secure JWT authentication, role-based authorization (Admin, HR, Employee), salary/payroll management with Stripe, and fully protected API routes.
-
 ---
 
 ## 🌐 Live Server
